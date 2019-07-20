@@ -1,1 +1,1 @@
-## Projecto inteligencia artificial
+## Proyecto inteligencia artificial
