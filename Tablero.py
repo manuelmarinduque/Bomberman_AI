@@ -7,6 +7,8 @@ from tkinter import mainloop, Tk, Frame, PhotoImage, Label
 archivo=open("aleatoria.txt","w") # Genera un archivo txt "w" hace referencia a que vamos a escribir en el
 ran=random.randint(15, 20) # Se crea una variable random entre 15 y 20 para generar el # de columnas aleatorias
 
+# Se crea un vector en el que se almacena la posición (i,j) de la puerta:
+meta=[]
 # Se crea el tablero base sin ladrillos validando las orillas del tablero con unos y los muros del medio:
 matriz = []
 for i in range(11):
@@ -42,14 +44,25 @@ def GenLadrillos(m):
 
 				
 		if m[x][y]==0 and (x>2 or  y>2 ):
-			m[x][y]=m[x][y]+2	
+			m[x][y]=m[x][y]+2
+
+			if a==1:  # Se ubica la meta en el ultimo ladrillo que se genera y se guardan en el vector meta
+				meta.append(x)
+				meta.append(y)
 	
 			a=a-1
 	return m
 
+def GenMeta(): #Funcion que retorna las cordenadas de la meta [x,y]
+	return meta
+
 # Se genera la matriz tablero pasando como parámetro la matriz del tablero base:
 tablero = GenLadrillos(matriz)
 
+# Se muestra la posición de la meta:
+print(tablero)
+print("Meta")
+print(GenMeta())
 # ----------------------------------- Parte gráfica -----------------------------------
 
 # Ventana raiz:
