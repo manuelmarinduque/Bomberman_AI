@@ -5,69 +5,27 @@ Created on Wed Jul  3 22:20:36 2019
 @author: diego
 """
 
+import Tablero
+
 ##Clases ///////////////////////////////////////
 
 class Mapa:
     def __init__(self, archivo="mapa3.txt"):
-        self.contador = 0
         self.mapa = leerMapa(archivo)
-        globals()["metaOculta"] = [4,3]
-        ##print(self.mapa)
-        self.fila = len(self.mapa)
-        self.columna = len(self.mapa[0])
-        ##print(self.fila)
-        print(self.columna)
-        ##print(self.mapa)
-        ##print(self.mapa[0][8])
- 
-    def __str__(self):
-        salida = ""
-        for f in range(self.fila):
-            ##print(f)
-            for c in range(self.columna):
-                ##print(c)
-                if self.mapa[f][c] == 0:
-                    salida += "  "
-                if self.mapa[f][c] == 1:
-                    salida += "1 "
-                if self.mapa[f][c] == 2:
-                    salida += "2 "
-                if self.mapa[f][c] == 3:
-                    salida += "3 "
-                if self.mapa[f][c] == 4:
-                    salida += "4 "
-                if self.mapa[f][c] == 5:
-                    salida += "5 "
-                if self.mapa[f][c] == 6:
-                    salida += "6 "
-                if self.mapa[f][c] == 7:
-                    salida += "7 "
-                if self.mapa[f][c] == 8:
-                    salida += "8 "
-                    
-            salida += "\n"
-            ##print(salida, "\n")
-        return salida
-    
-    def camino(self, lista, i, coor):
-        #del lista[-1]    
-        print(coor)		
-        self.mapa[lista[i][0]][lista[i][1]] = 6
-        print(self.mapa)
-        self.mapa[coor[0]][coor[1]] = 0        
-        print(self.mapa)
+        globals()["metaOculta"] = Tablero.GenMeta()
+
 		
 class Nodo:
     def __init__(self, tipo=None, pos=[0, 0], padre=None, inmediatos=[], mapa = []):
+        self.puerta = False
+        self.bomba = False
+        self.contBom = 0
         self.tipo = tipo
         self.pos = pos
         self.mapa = mapa
-        ##print(self.pos)
         self.padre = padre
-        ##print(padre)
         self.inmediatos = inmediatos
         self.h = distancia(self.pos, globals()["pos_f"])
-        ##print(self.h)
  
         if self.padre == None:
             self.g = 0
@@ -75,14 +33,8 @@ class Nodo:
         else:
             self.g = self.padre.g + 1
             self.mapa = self.padre.mapa
-            self.mapa = self.actualizarMatriz()
+            self.actualizarMatriz()
         self.f = self.g + self.h
-        #for i in range(len(self.mapa)):
-        print(" ")
-        print("\n",self.mapa)
-        ##print(self.g)
-        ##print(self.f)
-        print(self.tipo, self.pos, self.padre, self.inmediatos, self.h, self.g, self.f)
         
     def actualizarMatriz(self):
         if (self.tipo == "Camino"):
@@ -113,26 +65,33 @@ class Nodo:
             for i in range(len(estallar)):
                 if (estallar[i] == globals()["metaOculta"]):
                     self.mapa[estallar[i][0]][estallar[i][1]] = 4
+                    self.puerta = True
                     globals()["puerta"] = True
                     globals()["pos_f"] = posEncontrada(self.mapa)
                 else:
-                    self.mapa[estallar[i][0]][estallar[i][1]] = 0
+                    if(self.mapa[estallar[i][0]][estallar[i][1]] != 1):
+                        self.mapa[estallar[i][0]][estallar[i][1]] = 0
             self.mapa[bom[0]][bom[1]] = 0
-        return self.mapa
+            
+    def mostrarValores(self):
+        mensajePapa = None
+        if self.padre != None:
+            mensajePapa =  (self.padre.pos, self.padre.h , self.padre.g)
+        print(self.bomba, self.contBom, self.tipo, self.pos, mensajePapa, self.inmediatos, self.h, self.g, self.f)
+        
 
 class AAsterisco:
     def __init__(self, mapa):
         self.mapa = mapa
         self.contador = 0
-        ##print(mapa)
         
         # Nodos de inicio y fin.
         pos_inicial = buscarPos(6, mapa)
-        print(pos_inicial)
         self.inicio = Nodo("Camino", pos_inicial, None, [],  mapa)
+        self.inicio.mostrarValores()
         pos_final = globals()["pos_f"]
-        print(pos_final)
         self.fin = Nodo("Camino",pos_final)
+        self.fin.mostrarValores()
  
         # Crea las listas abierta y cerrada.
         self.abierta = []
@@ -140,6 +99,7 @@ class AAsterisco:
  
         # Añade el nodo inicial a la lista cerrada.
         self.cerrada.append(self.inicio)
+        print(self.inicio.mapa)
    
         # Añade vecinos a la lista abierta
         self.abierta += self.vecinos(self.inicio)
@@ -148,66 +108,85 @@ class AAsterisco:
         while self.meta():
             self.fin.pos = globals()["pos_f"]
             self.contador += 1
-            globals()["contBom"] -= 1
-            if ((globals()["contBom"] < 0) and (globals()["bomba"] == True)):
-                self.cerrada.append(Nodo("Estallar",self.abierta[0].pos,self.abierta[0].padre,[]))
-                globals()["bomba"] = False   
-            if self.contador:
-                self.buscar()
-            else:
-                break
+            self.buscar()
  
         self.camino = self.camino()
-        print(self.camino)
  
     # Devuelve una lista con los nodos vecinos transitables.
     def vecinos(self, nodo):
+        nodo.contBom -= 1
         vecinos   = []
         nuevopadre = nodo
         abajo_pos     = [nodo.pos[0]+1 , nodo.pos[1]]
         arriba_pos    = [nodo.pos[0]-1 , nodo.pos[1]]
         izquierda_pos = [nodo.pos[0] , nodo.pos[1]-1]
         derecha_pos   = [nodo.pos[0] , nodo.pos[1]+1]
+        nodoAspirante = []
         
         abajo = self.mapa[abajo_pos[0]][abajo_pos[1]]
         arriba = self.mapa[arriba_pos[0]][arriba_pos[1]]
         izquierda = self.mapa[izquierda_pos[0]][izquierda_pos[1]]
         derecha = self.mapa[derecha_pos[0]][derecha_pos[1]]
         
+        if ((nodo.contBom < 0) and (nodo.bomba == True)):
+            nodoAspirante = Nodo("Estallar",nodo.pos,nodo,[])
+            nodoAspirante.bomba = False
+            nodoAspirante.contBom = 0
+            nodoAspirante.mostrarValores()
+            self.cerrada.append(nodoAspirante)
+            nuevopadre = self.cerrada[-1]
         
-        if (arriba == 2 or abajo == 2 or izquierda == 2 or derecha == 2) and (globals()["bomba"] == False) and (globals()["puerta"] == False):
+        
+        if (arriba == 2 or abajo == 2 or izquierda == 2 or derecha == 2) and (nodo.bomba == False) and (globals()["puerta"] == False):
             inmediatos = []
-            globals()["bomba"] = True
-            globals()["contBom"] = 3
-            if arriba == 2:
-                inmediatos.append(arriba_pos)
-            if abajo == 2:
-                inmediatos.append(abajo_pos)
-            if izquierda == 2:
-                inmediatos.append(izquierda_pos)
-            if derecha == 2:
-                inmediatos.append(derecha_pos)
+            inmediatos.append(arriba_pos)
+            inmediatos.append(abajo_pos)
+            inmediatos.append(izquierda_pos)
+            inmediatos.append(derecha_pos)
             globals()["pos_f"] = posEncontrada(self.mapa)
             activarBomba = Nodo("Bomba",[nodo.pos[0], nodo.pos[1]],nodo,inmediatos)
+            activarBomba.bomba = True
+            activarBomba.contBom = 2
+            activarBomba.mostrarValores()
+            print(activarBomba.mapa)
             self.cerrada.append(activarBomba)
             nuevopadre = self.cerrada[-1]
             self.fin.pos = globals()["pos_f"]
-            self.abierta = vaciarLista(self.abierta)
+            #self.abierta = vaciarLista(self.abierta)
             
-          
-            
-            
-    
         ### Posiciones vacias
-        if  abajo == 0 or abajo == 4 or abajo == 7:
-            vecinos.append(Nodo("Camino",[abajo_pos[0], abajo_pos[1]], nuevopadre))   
-        if  arriba == 0 or arriba == 4 or arriba == 7:
-            vecinos.append(Nodo("Camino",[arriba_pos[0], arriba_pos[1]], nuevopadre))           
-        if  izquierda == 0 or izquierda == 4 or izquierda == 7:
-            vecinos.append(Nodo("Camino",[izquierda_pos[0], izquierda_pos[1]], nuevopadre))      
-        if  derecha == 0 or derecha == 4 or derecha == 7:
-            vecinos.append(Nodo("Camino",[derecha_pos[0], derecha_pos[1]], nuevopadre))
-            
+        if  abajo == 0 or abajo == 4:
+            nodoAspirante = Nodo("Camino",[abajo_pos[0], abajo_pos[1]], nuevopadre)
+            nodoAspirante.bomba = nuevopadre.bomba
+            nodoAspirante.contBom = nuevopadre.contBom
+            nodoAspirante.mostrarValores()
+            if (not(self.peligroMorir(nodoAspirante))) or (nodoAspirante.bomba == False) or (abajo == 4) :
+                vecinos.append(nodoAspirante)   
+                
+        if  arriba == 0 or arriba == 4 :
+            nodoAspirante = Nodo("Camino",[arriba_pos[0], arriba_pos[1]], nuevopadre) 
+            nodoAspirante.bomba = nuevopadre.bomba
+            nodoAspirante.contBom = nuevopadre.contBom
+            nodoAspirante.mostrarValores()
+            if (not(self.peligroMorir(nodoAspirante))) or (nodoAspirante.bomba == False) or (arriba == 4 ):
+                vecinos.append(nodoAspirante)  
+                
+        if  izquierda == 0 or izquierda == 4 :
+            nodoAspirante = Nodo("Camino",[izquierda_pos[0], izquierda_pos[1]], nuevopadre)  
+            nodoAspirante.bomba = nuevopadre.bomba
+            nodoAspirante.contBom = nuevopadre.contBom
+            nodoAspirante.mostrarValores()
+            if (not(self.peligroMorir(nodoAspirante))) or (nodoAspirante.bomba == False) or (izquierda == 4) :
+                vecinos.append(nodoAspirante) 
+                
+        if  derecha == 0 or derecha == 4 :
+            nodoAspirante = Nodo("Camino",[derecha_pos[0], derecha_pos[1]], nuevopadre)
+            nodoAspirante.bomba = nuevopadre.bomba
+            nodoAspirante.contBom = nuevopadre.contBom
+            nodoAspirante.mostrarValores()
+            #if (not(self.peligroMorir(nodoAspirante))) or (nodoAspirante.bomba == False) or (derecha == 4) :
+            vecinos.append(nodoAspirante)    
+                        
         return vecinos
  
     # Pasa el elemento de f menor de la lista abierta a la cerrada.    
@@ -218,9 +197,12 @@ class AAsterisco:
             if self.abierta[i].f < a.f:
                 a = self.abierta[i]
                 n = i
+        print("m")
         self.cerrada.append(self.abierta[n])
-        while(len(self.abierta) > 0):
-            self.abierta.pop()
+        del self.abierta[n]
+        #while(len(self.abierta) > 0):
+         #   self.abierta.pop()
+        
         
    
  
@@ -234,11 +216,11 @@ class AAsterisco:
     # Gestiona los vecinos del nodo seleccionado.
     def ruta(self):
         for i in range(len(self.nodos)):
-            if self.en_lista(self.nodos[i], self.cerrada):
-                continue
-            elif not self.en_lista(self.nodos[i], self.abierta):
+            #if self.en_lista(self.nodos[i], self.cerrada):
+             #   continue
+            if not self.en_lista(self.nodos[i], self.abierta):
                 self.abierta.append(self.nodos[i])
-                print(self.abierta[-1].pos)
+                #print(self.abierta[-1].pos)
             else:
                 if self.select.g+1 < self.nodos[i].g:
                     for j in range(len(self.abierta)):
@@ -251,7 +233,7 @@ class AAsterisco:
     def buscar(self):
         self.f_menor()
         self.select = self.cerrada[-1]
-        self.nodos = self.vecinos(self.select)
+        self.nodos = self.vecinos(self.select)  
         self.ruta()
  
     # Comprueba si el meta meta está en la lista abierta.
@@ -260,20 +242,37 @@ class AAsterisco:
             if self.fin.pos == self.abierta[i].pos:
                 return 0
         return 1
+    
+    def peligroMorir(self, nodo):
+        padre = nodo.padre
+        pos = nodo.pos
+        ladrillos = []
+        while (padre != None):
+            if (padre.tipo == "Bomba"):
+                ladrillos = padre.inmediatos
+                break
+            else:
+                padre = padre.padre
+        
+        for i in range(len(ladrillos)):
+            if(ladrillos[i] == pos):
+                return 1
+                    
+        return 0
      
     # Retorna una lista con las posiciones del camino a seguir.
     def camino(self):
         for i in range(len(self.abierta)):
-            if (self.fin.pos == self.abierta[i].pos) or (globals()["puerta"] == True):
+            if (self.fin.pos == self.abierta[i].pos):
                 meta = self.abierta[i]
-            else:
-                meta = self.abierta[i].padre
-    
+                print(meta.mapa)
 
         camino = []
         while meta.padre != None:
             camino.append(meta.mapa)
+            print(meta.tipo, meta.pos, "Puerta ->", meta.puerta, globals()["pos_f"])
             meta = meta.padre
+            #print("c", len(camino))
         camino.reverse()
         return camino
     
@@ -292,7 +291,7 @@ def vaciarLista(lista):
 
   
 def distancia(a, b):
-    print(a, "\n", b)
+   # print(a, "\n", b)
     dis = abs(a[0] - b[0]) + abs(a[1] - b[1]) #Valor absoluto.      
     return dis
 
@@ -368,21 +367,22 @@ def leerMapa(archivo):
     
    
 def main():
-    mapaEnd = Mapa()
+    #Tablero.archivo
+    mapaEnd = Mapa("aleatoria.txt")
     ##print(mapaEnd)     
     globals()["listaLadrillos"] = enlistarLadrillos(mapaEnd.mapa)
     globals()["pos_f"] = posEncontrada(mapaEnd.mapa)
-    globals()["bomba"] = False
-    globals()["contBom"] = 0
     globals()["puerta"] = False
-    if(pos_f == 0):
+    if(globals()["pos_f"] == 0):
         print("Meta no establecida")
     else:
         A = AAsterisco(mapaEnd.mapa)
-        print(mapaEnd)
-        #for i in range(len(A.camino)):
+        ##print(mapaEnd.mapa)
+        #for i in  range(len(A.camino)):
             #print(i)            
             #print(A.camino[i])
+       # print(A.camino[0])
+    print(Tablero.tablero)
     return 0
 
 if __name__ == '__main__':
