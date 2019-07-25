@@ -22,41 +22,49 @@ for i in range(11):
 
 # Función que genera los ladrillos: Recibe como parámetro una matriz:
 def GenLadrillos(m):
-	b=ran*11 # Numero de casillas
-	a=int(b*0.2) # Numero de ladrillos
-	c=3 # Numero de mostruos 
+    b=ran*11 # Numero de casillas
+    a=int(b*0.2) # Numero de ladrillos
+    c=3 # Numero de mostruos 
 
-	m[1][1]=m[1][1]+6
+    m[1][1]=m[1][1]+6
 
-	while c>0: # Ciclo para generar los monstruos
-		x=random.randint(0, 10 )
+    while c>0: # Ciclo para generar los monstruos
+        x=random.randint(0, 10 )
 		
-		y=random.randint(0, ran-1)
-		if m[x][y]==0 and y%2==0 and (x>2 or y>2): # Se generan lejos del agente en cualquier posicion donde exista un 0
-			m[x][y]=m[x][y]+5
-			c=c-1
+        y=random.randint(0, ran-1)
+        if m[x][y]==0 and y%2==0 and (x>2 or y>2): # Se generan lejos del agente en cualquier posicion donde exista un 0
+            m[x][y]=m[x][y]+5
+            c=c-1
 
 				
-	while a>0: # Ciclo para generar los ladrillos 
-		x=random.randint(0, 10 )
+    while a>0: # Ciclo para generar los ladrillos 
+        x=random.randint(0, 10 )
 		
-		y=random.randint(0, ran-1)
+        y=random.randint(0, ran-1)
 
 				
-		if m[x][y]==0 and (x>2 or  y>2 ):
-			m[x][y]=m[x][y]+2
+        if m[x][y]==0 and (x>2 or  y>2 ):
+            m[x][y]=m[x][y]+2
 
-			if a==1:  # Se ubica la meta en el ultimo ladrillo que se genera y se guardan en el vector meta
-				meta.append(x)
-				meta.append(y)
+            if a==1:  # Se ubica la meta en el ultimo ladrillo que se genera y se guardan en el vector meta
+                meta.append(x)
+                meta.append(y)
 	
-			a=a-1
-	return m
+            a=a-1
+    for i in range(11):
+        for j in range(ran):
+            archivo.writelines('% s'%matriz[i][j])
+        
+        archivo.writelines("\n")
+        
+    return m
 
 def GenMeta(): #Funcion que retorna las cordenadas de la meta [x,y]
 	return meta
 
 # Se genera la matriz tablero pasando como parámetro la matriz del tablero base:
+
+
 tablero = GenLadrillos(matriz)
 
 # Se muestra la posición de la meta:
@@ -86,7 +94,7 @@ def generar_tablero(lista):
     for n,i in enumerate(lista):
         for k,j in enumerate(i):
                 if j == 1: # Pared
-                        Label(miFrame, image=pared, bd=0).grid(row=n, column=k)
+                    Label(miFrame, image=pared, bd=0).grid(row=n, column=k)
                 if j == 2: # Ladrillo
                         Label(miFrame, image=ladrillo, bd=0).grid(row=n, column=k)
                 if j == 4: # Puerta
@@ -97,9 +105,11 @@ def generar_tablero(lista):
                         Label(miFrame, image=agente, bd=0).grid(row=n, column=k)
                 if j == 7: # Bomba
                         Label(miFrame, image=bomba, bd=0).grid(row=n, column=k)
+                if j == 8: # Ladrillo demarcado para estallar
+                        Label(miFrame, image=ladrillo, bd=0).grid(row=n, column=k)
 
 # Se genera el tablero pasando como parámetro la matriz "tablero" que hace referencia a la función GenLadrillos():
 generar_tablero(tablero)
-
+GenLadrillos(matriz)
 # Siempre el mainloop al final:
 root.mainloop()
