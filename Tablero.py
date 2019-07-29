@@ -3,7 +3,7 @@ import random
 class Tablero:
 
     ran=random.randint(15, 20)
-    archivo=open("aleatoria","w")
+    archivo=open("aleatoria.txt","w")
     meta = []
 
     def __generar_tablero_base(self):
@@ -43,6 +43,7 @@ class Tablero:
             for j in range(self.ran):
                 self.archivo.writelines('% s'%m[i][j])
             self.archivo.writelines('\n')
+        self.archivo.close()
         return m
 
     def GenMeta(self):
