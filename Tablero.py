@@ -26,7 +26,7 @@ class Tablero:
         while c>0: # Ciclo para generar los monstruos
             x=random.randint(0, 10 )
             y=random.randint(0, self.ran-1)
-            if m[x][y]==0 and y%2==0 and (x>2 or y>2): # Se generan lejos del agente en cualquier posicion donde exista un 0
+            if m[x][y]==0 and y%2==0 and (x>4 or y>4): # Se generan lejos del agente en cualquier posicion donde exista un 0
                 m[x][y]=m[x][y]+5
                 c=c-1         
         while a>0: # Ciclo para generar los ladrillos 

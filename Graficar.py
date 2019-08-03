@@ -28,3 +28,5 @@ class Graficar:
                     ventana.blit(self.agente, (posx, posy))
                 if j == 7:  # Bomba
                     ventana.blit(self.bomba, (posx, posy))
+                if j == 8:  # Ladrillo a estallar
+                    ventana.blit(self.ladrillo, (posx, posy))
