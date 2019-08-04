@@ -41,7 +41,7 @@ while c:
     Tiempo = pygame.time.get_ticks()
     # print(Tiempo)
 
-    if aux_tiempo == Tiempo:
+    if aux_tiempo < Tiempo:
         ventana.fill(pygame.Color("#4ca404"))
         grafica.GraficarTablero(ventana, dibujarTablero.camino(mapeo[0][aux]))
         aux_tiempo += 500

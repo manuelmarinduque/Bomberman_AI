@@ -557,12 +557,19 @@ class AAsterisco:
     
    
 def listaFinal():
-    opcion = int(input("Ingrese"))
-    if opcion == 1:
-        archivo = "aleatoria.txt"
-        tablerito = Tablero.Tablero()
-        tablerito.GenLadrillos()
-        globals()["metaOculta"] = tablerito.GenMeta()
+    print("Slecciona una opción: \n",
+            "1 - A* cargando archivo\n",
+            "2 - A* Mapa aleatorio\n",
+            "3 - Profundidad Uniforme cargando Archivo\n",
+            "4 - Profundidad Uniforme mapa aleatorio")
+
+    opcion = int(input("Opción: "))
+
+    if opcion == 2 or opcion == 4:
+            archivo = "aleatoria.txt"
+            tablerito = Tablero.Tablero()
+            tablerito.GenLadrillos()
+            globals()["metaOculta"] = tablerito.GenMeta()
     else:
         archivo = "mapa3.txt"
 
@@ -570,8 +577,14 @@ def listaFinal():
     globals()["listaLadrillos"] = Funciones.enlistarLadrillos(mapaEnd.mapa,2)
     globals()["metaOculta"] = Funciones.generarMeta(globals()["listaLadrillos"])
   
-    A = AAsterisco(mapaEnd.mapa)
-    print(mapaEnd.mapa)
+    if(opcion == 1 or opcion == 2):
+        globals()["algoritmo"] = "A*"
+        A = AAsterisco(mapaEnd.mapa)
+        print(mapaEnd.mapa)
+
+    if(opcion == 3 or opcion == 4):
+        globals()["algoritmo"] = "pU"
+        pU = print("hola")
 
     for i in range(len(A.caminata)):
         print(A.caminata[i].tipo, A.caminata[i].pos, A.caminata[i].muerte,  "Puerta ->", A.caminata[i].puerta, A.caminata[i].posFinal, " , ", A.caminata[i].f, " , ",A.caminata[i].posEnemigos )
