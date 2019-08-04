@@ -83,7 +83,7 @@ def leerMapa(archivo):
     for i in range(len(mapa1)):
         mapa1[i] = listarCadena(mapa1[i], i)
     return mapa1
-
+    
 def generarMeta(lista):
     pos = random.randint(0 , len(lista))
     return lista[pos-1]
