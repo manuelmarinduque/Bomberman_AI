@@ -6,26 +6,21 @@ Created on Wed Jul  3 22:20:36 2019
 """
 
 import Tablero
-import random
+import Funciones
 
-import pygame
-import sys
-from pygame.locals import *  # Surge error, es normal
-#from Tablero import Tablero
-from Graficar import Graficar
 
 ##Clases ///////////////////////////////////////
 
 class Mapa:
     def __init__(self, archivo="mapa3.txt"):
-        self.mapa = leerMapa(archivo)
+        self.mapa = Funciones.leerMapa(archivo)
         
     def camino(self, nodo):
         if (nodo.tipo == "Camino"):
-            posAgente = buscarPos(6, self.mapa)
+            posAgente = Funciones.buscarPos(6, self.mapa)
             while(posAgente != 0):
                 self.mapa[posAgente[0]][posAgente[1]] = 0
-                posAgente = buscarPos(6, self.mapa)
+                posAgente = Funciones.buscarPos(6, self.mapa)
             if self.mapa[nodo.pos[0]][nodo.pos[1]] != 7:
                 self.mapa[nodo.pos[0]][nodo.pos[1]] = 6
         
@@ -33,7 +28,7 @@ class Mapa:
             self.mapa[nodo.pos[0]][nodo.pos[1]] = 7
             for i in range(len(nodo.inmediatos)):
                 if (self.mapa[nodo.inmediatos[i][0]][nodo.inmediatos[i][1]] == 2):
-                    self.mapa[nodo.inmediatos[i][0]][nodo.inmediatos[i][1]] = 8
+                        self.mapa[nodo.inmediatos[i][0]][nodo.inmediatos[i][1]] = 8
 
         if (nodo.tipo == "Estallar"):
             padre = nodo.padre
@@ -55,12 +50,13 @@ class Mapa:
                         self.mapa[estallar[i][0]][estallar[i][1]] = 0
             self.mapa[bom[0]][bom[1]] = 0
         
-        posAgente = buscarPos(5, self.mapa)
-        while(posAgente != 0):
-            self.mapa[posAgente[0]][posAgente[1]] = 0
-            posAgente = buscarPos(5, self.mapa)
+        posMonstro = Funciones.buscarPos(5, self.mapa)
+        while(posMonstro != 0):
+            self.mapa[posMonstro[0]][posMonstro[1]] = 0
+            posMonstro = Funciones.buscarPos(5, self.mapa)
         for i in range(len(nodo.posEnemigos)):
-            self.mapa[nodo.posEnemigos[i][0]][nodo.posEnemigos[i][1]] = 5
+            if(self.mapa[nodo.posEnemigos[i][0]][nodo.posEnemigos[i][1]] != 4):
+                self.mapa[nodo.posEnemigos[i][0]][nodo.posEnemigos[i][1]] = 5
 
         return self.mapa
 
@@ -83,8 +79,10 @@ class Nodo:
         if self.padre == None:
             self.g = 0
             self.mapa = mapa
-            self.posFinal = posEncontrada(self.mapa)
-            self.posEnemigos = enlistarLadrillos(self.mapa, 5)
+            busqueda = Funciones.posEncontrada(self.mapa, globals()["listaLadrillos"])
+            self.posFinal = busqueda[0]
+            globals()["listaLadrillos"] = busqueda[1]
+            self.posEnemigos = Funciones.enlistarLadrillos(self.mapa, 5)
             self.posEnemigos[0].append("Derecha")
             self.posEnemigos[1].append("Izquierda")
             self.posEnemigos[2].append("Abajo")
@@ -95,7 +93,7 @@ class Nodo:
             self.posFinal = self.padre.posFinal
             #self.actualizarMatriz()
 
-        self.h = distancia(self.pos, self.posFinal)
+        self.h = Funciones.distancia(self.pos, self.posFinal)
         self.f = self.g + self.h
         print(self.tipo, self.pos , self.posFinal, globals()["metaOculta"], " , ", self.f)
         
@@ -104,18 +102,18 @@ class Nodo:
 
     def actualizarMatriz(self):
         if (self.tipo == "Camino"):
-            posAgente = buscarPos(6, self.mapa)
+            posAgente = Funciones.buscarPos(6, self.mapa)
             while(posAgente != 0):
                 self.mapa[posAgente[0]][posAgente[1]] = 0
-                posAgente = buscarPos(6, self.mapa)
+                posAgente = Funciones.buscarPos(6, self.mapa)
             if self.mapa[self.pos[0]][self.pos[1]] != 7:
                 self.mapa[self.pos[0]][self.pos[1]] = 6
         
         if (self.tipo == "Bomba"):
-            posAgente = buscarPos(6, self.mapa)
+            posAgente = Funciones.buscarPos(6, self.mapa)
             while(posAgente != 0):
                 self.mapa[posAgente[0]][posAgente[1]] = 0
-                posAgente = buscarPos(6, self.mapa)
+                posAgente = Funciones.buscarPos(6, self.mapa)
             self.mapa[self.pos[0]][self.pos[1]] = 7
             posiciones = []
             for i in range(len(self.inmediatos)):
@@ -125,25 +123,22 @@ class Nodo:
                 for j in range(len(globals()["listaLadrillos"])):
                     if(self.inmediatos[i] == globals()["listaLadrillos"][j]):
                         posiciones.append(j)
-
+                
+            posiciones.reverse()
             tamaño = len(globals()["listaLadrillos"])
             for i in range(len(posiciones)):
                 del(globals()["listaLadrillos"][posiciones[i]])
                 print(len(globals()["listaLadrillos"]), tamaño)
                 print("a")
 
-            final = posEncontrada(self.mapa)
-            if(final != 0):
-                self.posFinal = final
+            
         
         if (self.tipo == "Estallar"):
             padre = self.padre
             estallar = []
-            bom = None
             while (padre != None):
                 if (padre.tipo == "Bomba"):
                     estallar = padre.inmediatos
-                    bom = padre.pos
                     break
                 else:
                     padre = padre.padre
@@ -155,27 +150,27 @@ class Nodo:
                 if (estallar[i] == globals()["metaOculta"]):
                     self.mapa[estallar[i][0]][estallar[i][1]] = 4
                     self.puerta = True
-                    self.posFinal = posEncontrada(self.mapa)
+                    busqueda = Funciones.posEncontrada(self.mapa, globals()["listaLadrillos"])
+                    self.posFinal = busqueda[0]
+                    globals()["listaLadrillos"] = busqueda[1]
                 else:
                     if(self.mapa[estallar[i][0]][estallar[i][1]] != 1):
                         self.mapa[estallar[i][0]][estallar[i][1]] = 0
                 
                 for j in range(len(self.posEnemigos)):
-                    if (estallar[i] == self.posEnemigos[j]):
+                    if (estallar[i][0] == self.posEnemigos[j][0]) and (estallar[i][1] == self.posEnemigos[j][1]):
                         posiciones.append(j)
 
             for i in range(len(posiciones)):
                 del(self.posEnemigos[posiciones[i]])
                 print("a")
-
-            self.mapa[bom[0]][bom[1]] = 0
         
-        posAgente = buscarPos(5, self.mapa)
+        posAgente = Funciones.buscarPos(5, self.mapa)
         while(posAgente != 0):
             if posAgente == self.pos:
                 self.muerte = True
             self.mapa[posAgente[0]][posAgente[1]] = 0
-            posAgente = buscarPos(5, self.mapa)
+            posAgente = Funciones.buscarPos(5, self.mapa)
         for i in range(len(self.posEnemigos)):
             self.mapa[self.posEnemigos[i][0]][self.posEnemigos[i][1]] = 5
 
@@ -186,19 +181,16 @@ class Nodo:
             mensajePapa =  (self.padre.pos, self.padre.h , self.padre.g)
         print(self.bomba, self.contBom, self.tipo, self.pos, self.posFinal, mensajePapa, 
                 self.inmediatos, self.h, self.g, self.f, self.muerte, self.puerta)
-        #print(self.tipo,"\n", self.mapa)
         
 class AAsterisco:
     def __init__(self, mapa):
         self.mapa = mapa
         self.contador = 0
         
-        # Nodos de inicio y fin.
-        pos_inicial = buscarPos(6, mapa)
+        # Nodos de inicio
+        pos_inicial = Funciones.buscarPos(6, mapa)
         self.inicio = Nodo("Camino", pos_inicial, None, [],  mapa)
-        #self.inicio.mostrarValores()
-        #self.fin = Nodo("Camino",pos_final)
-        #self.fin.mostrarValores()
+
  
         # Crea las listas abierta y cerrada.
         self.abierta = []
@@ -216,9 +208,9 @@ class AAsterisco:
         while self.meta():
             self.contador += 1
             if(self.abierta == []):
-                self.abierta = llenarLista(self.temp, self.abierta)
+                self.abierta = Funciones.llenarLista(self.temp, self.abierta)
             self.buscar()
-            """if(self.contador <= 3):
+            """if(self.contador <= 10000):
                 self.buscar()
             else:
                 punto = self.abierta[0]
@@ -260,8 +252,6 @@ class AAsterisco:
         izquierda = mapa[izquierda_pos[0]][izquierda_pos[1]]
         derecha = mapa[derecha_pos[0]][derecha_pos[1]]
         
-
-        #print(self.peligroMorir(nuevopadre))
         if(nuevopadre.muerte == False and self.peligroMorir(nuevopadre) and nodo.bomba == True):
             nodoAspirante = Nodo("Camino", [nuevopadre.pos[0], nuevopadre.pos[1]], nuevopadre, [] , nuevopadre.mapa)
             nodoAspirante.bomba = nuevopadre.bomba
@@ -271,6 +261,7 @@ class AAsterisco:
             nodoAspirante.mapa = mapa
             nodoAspirante.posEnemigos = listaEnemigos
             nodoAspirante.actualizarMatriz()
+            nodoAspirante.posEnemigos = self.enemigos(nodoAspirante.mapa, listaEnemigos)
             vecinos.append(nodoAspirante)
         
 
@@ -281,19 +272,15 @@ class AAsterisco:
             nodoAspirante.mapa = nodo.mapa
             nodoAspirante.posEnemigos = nodo.posEnemigos
             nodoAspirante.actualizarMatriz()
-            #nodoAspirante.posEncontrada()
-            #nodoAspirante.mostrarValores()
             self.cerrada.append(nodoAspirante)
             nuevopadre = self.cerrada[-1]
-            #self.abierta = vaciarLista(self.abierta)
 
             mapa = self.nuevoMapa(nuevopadre.mapa)
-            listaEnemigos = self.nuevosEnemigos(nuevopadre.posEnemigos, mapa)
             for i in range(len(listaEnemigos)):
                 mapa[listaEnemigos[i][0]][listaEnemigos[i][1]] = 5
-                print([listaEnemigos[i][0], listaEnemigos[i][1]], nodo.pos)
-                if(listaEnemigos[i][0] == nodo.pos[0] and listaEnemigos[i][1] == nodo.pos[1]):
-                    nodo.muerte = True
+                print([listaEnemigos[i][0], listaEnemigos[i][1]], nuevopadre.pos)
+                if(listaEnemigos[i][0] == nuevopadre.pos[0] and listaEnemigos[i][1] == nuevopadre.pos[1]):
+                    nuevopadre.muerte = True
 
             abajo_pos     = [nuevopadre.pos[0]+1 , nuevopadre.pos[1]]
             arriba_pos    = [nuevopadre.pos[0]-1 , nuevopadre.pos[1]]
@@ -306,42 +293,43 @@ class AAsterisco:
             izquierda = mapa[izquierda_pos[0]][izquierda_pos[1]]
             derecha = mapa[derecha_pos[0]][derecha_pos[1]]
         
-        if ((arriba == 2 or abajo == 2 or izquierda == 2 or derecha == 2) or (arriba == 5 or abajo == 5 or izquierda == 5 or derecha == 5)) and (nodo.bomba == False) and (nodo.puerta == False):
+        if ((arriba == 2 or abajo == 2 or izquierda == 2 or derecha == 2) or (arriba == 5 or abajo == 5 or izquierda == 5 or derecha == 5)) and (nuevopadre.bomba == False) and (nuevopadre.puerta == False):
             inmediatos = []
-            inmediatos.append(nodo.pos)
+            inmediatos.append(nuevopadre.pos)
             inmediatos.append(arriba_pos)
             inmediatos.append(abajo_pos)
             inmediatos.append(izquierda_pos)
             inmediatos.append(derecha_pos)
-            activarBomba = Nodo("Bomba",[nodo.pos[0], nodo.pos[1]],nodo,inmediatos, nodo.mapa)
+            activarBomba = Nodo("Bomba",[nuevopadre.pos[0], nuevopadre.pos[1]],nuevopadre,inmediatos, nuevopadre.mapa)
             activarBomba.bomba = True
             activarBomba.contBom = 2
-            activarBomba.mapa = nodo.mapa
-            activarBomba.posEnemigos = nodo.posEnemigos
+            activarBomba.mapa = nuevopadre.mapa
+            activarBomba.posEnemigos = nuevopadre.posEnemigos
             activarBomba.actualizarMatriz()
-            #activarBomba.mostrarValores()
-            #activarBomba.posEncontrada()
-            #print(activarBomba.mapa)
+            if(arriba_pos == nuevopadre.posFinal or abajo_pos == nuevopadre.posFinal or izquierda_pos == nuevopadre.posFinal or derecha_pos == nuevopadre.posFinal):
+                final = Funciones.posEncontrada(self.mapa, globals()["listaLadrillos"])
+                globals()["listaLadrillos"] = final[1]
+                if(final[0] != 0):
+                    self.posFinal = final
+
             self.cerrada.append(activarBomba)
             nuevopadre = self.cerrada[-1]
             
             mapa = self.nuevoMapa(nuevopadre.mapa)
-            listaEnemigos = self.nuevosEnemigos(nuevopadre.posEnemigos, mapa)
             for i in range(len(listaEnemigos)):
                 mapa[listaEnemigos[i][0]][listaEnemigos[i][1]] = 5
-                print([listaEnemigos[i][0], listaEnemigos[i][1]], nodo.pos)
-                if(listaEnemigos[i][0] == nodo.pos[0] and listaEnemigos[i][1] == nodo.pos[1]):
-                    nodo.muerte = True
+                print([listaEnemigos[i][0], listaEnemigos[i][1]], nuevopadre.pos)
+                if(listaEnemigos[i][0] == nuevopadre.pos[0] and listaEnemigos[i][1] == nuevopadre.pos[1]):
+                    nuevopadre.muerte = True
             
             abajo = self.mapa[abajo_pos[0]][abajo_pos[1]]
             arriba = self.mapa[arriba_pos[0]][arriba_pos[1]]
             izquierda = self.mapa[izquierda_pos[0]][izquierda_pos[1]]
             derecha = self.mapa[derecha_pos[0]][derecha_pos[1]]
-            #self.fin.pos = globals()["pos_f"]
             encerrado = False
             if(arriba != 5 and abajo != 5 and derecha != 5 and izquierda != 5):
-                self.temp = llenarLista(self.abierta, self.temp)
-                self.abierta = vaciarLista(self.abierta)
+                self.temp = Funciones.llenarLista(self.abierta, self.temp)
+                self.abierta = Funciones.vaciarLista(self.abierta)
 
         
             abajo_pos     = [nuevopadre.pos[0]+1 , nuevopadre.pos[1]]
@@ -366,7 +354,7 @@ class AAsterisco:
                 nodoAspirante.mapa = mapa
                 nodoAspirante.posEnemigos = listaEnemigos
                 nodoAspirante.actualizarMatriz()
-                #nodoAspirante.mostrarValores()
+                nodoAspirante.posEnemigos = self.enemigos(nodoAspirante.mapa, listaEnemigos)
                 vecinos.append(nodoAspirante)   
                 
         if  (arriba == 0 or arriba == 4) and arriba != 5 :
@@ -378,7 +366,7 @@ class AAsterisco:
                 nodoAspirante.mapa = mapa
                 nodoAspirante.posEnemigos = listaEnemigos
                 nodoAspirante.actualizarMatriz()
-                #nodoAspirante.mostrarValores()
+                nodoAspirante.posEnemigos = self.enemigos(nodoAspirante.mapa, listaEnemigos)
                 vecinos.append(nodoAspirante)  
                 
         if (izquierda == 0 or izquierda == 4) and izquierda != 5 :
@@ -390,7 +378,7 @@ class AAsterisco:
                 nodoAspirante.mapa = mapa
                 nodoAspirante.posEnemigos = listaEnemigos
                 nodoAspirante.actualizarMatriz()
-                #nodoAspirante.mostrarValores()
+                nodoAspirante.posEnemigos = self.enemigos(nodoAspirante.mapa, listaEnemigos)
                 vecinos.append(nodoAspirante) 
                 
         if  (derecha == 0 or derecha == 4) and derecha != 5 :
@@ -402,44 +390,63 @@ class AAsterisco:
                 nodoAspirante.mapa = mapa
                 nodoAspirante.posEnemigos = listaEnemigos
                 nodoAspirante.actualizarMatriz()
-                #nodoAspirante.mostrarValores()
+                nodoAspirante.posEnemigos = self.enemigos(nodoAspirante.mapa, listaEnemigos)
                 vecinos.append(nodoAspirante) 
         
         return vecinos
+
+    def enemigos(self, mapa, rutina):
+        lista = Funciones.enlistarLadrillos(mapa, 5)
+        for i in range(len(rutina)):
+            lista[i].append(rutina[i][2])
+        
+        return lista
  
     def nuevosEnemigos(self, lista, mapa):
+        listaFinal = []
         for i in range(len(lista)):
             posicion = False
-            listaFinal = []
             if(lista[i][2] == "Derecha"):
-                if(mapa[lista[i][0]][lista[i][1]+1] == 0) or (mapa[lista[i][0]][lista[i][1]+1] == 4) or (mapa[lista[i][0]][lista[i][1]+1] == 6):
-                    listaFinal.append([lista[i][0], lista[i][1]+1, "Derecha"])
-                    posicion = True
-                    continue
+                if((mapa[lista[i][0]][lista[i][1]+1] == 0) or (mapa[lista[i][0]][lista[i][1]+1] == 4) or (mapa[lista[i][0]][lista[i][1]+1] == 6)):
+                    if not (self.posicionOcupada(lista, listaFinal, [lista[i][0], lista[i][1]+1])):
+                        listaFinal.append([lista[i][0], lista[i][1]+1, "Derecha"])
+                        posicion = True
+                        continue
+                    else:
+                        lista[i][2] = "Izquierda"
                 else:
                     lista[i][2] = "Izquierda"
 
             if(lista[i][2] == "Izquierda"):
-                if(mapa[lista[i][0]][lista[i][1]-1] == 0) or (mapa[lista[i][0]][lista[i][1]-1] == 4) or (mapa[lista[i][0]][lista[i][1]-1] == 6):
-                    listaFinal.append([lista[i][0], lista[i][1]-1, "Izquierda"])
-                    posicion = True
-                    continue
+                if((mapa[lista[i][0]][lista[i][1]-1] == 0) or (mapa[lista[i][0]][lista[i][1]-1] == 4) or (mapa[lista[i][0]][lista[i][1]-1] == 6)):
+                    if not (self.posicionOcupada(lista, listaFinal, [lista[i][0], lista[i][1]-1] )):
+                        listaFinal.append([lista[i][0], lista[i][1]-1, "Izquierda"])
+                        posicion = True
+                        continue
+                    else:
+                        lista[i][2] = "Arriba"
                 else:
                     lista[i][2] = "Arriba"
             
             if(lista[i][2] == "Arriba"):
-                if(mapa[lista[i][0]-1][lista[i][1]] == 0) or (mapa[lista[i][0]-1][lista[i][1]] == 4) or (mapa[lista[i][0]-1][lista[i][1]] == 6):
-                    listaFinal.append([lista[i][0]-1, lista[i][1], "Arriba"])
-                    posicion = True
-                    continue
+                if((mapa[lista[i][0]-1][lista[i][1]] == 0) or (mapa[lista[i][0]-1][lista[i][1]] == 4) or (mapa[lista[i][0]-1][lista[i][1]] == 6)):
+                    if not (self.posicionOcupada(lista, listaFinal, [lista[i][0]-1,lista[i][1]])):
+                        listaFinal.append([lista[i][0]-1, lista[i][1], "Arriba"])
+                        posicion = True
+                        continue
+                    else:
+                        lista[i][2] = "Abajo"
                 else:
                     lista[i][2] = "Abajo"
 
             if(lista[i][2] == "Abajo"):     
-                if(mapa[lista[i][0]+1][lista[i][1]] == 0) or (mapa[lista[i][0]+1][lista[i][1]] == 4) or (mapa[lista[i][0]+1][lista[i][1]] == 6):
-                    listaFinal.append([lista[i][0]+1, lista[i][1], "Abajo"])
-                    posicion = True
-                    continue
+                if((mapa[lista[i][0]+1][lista[i][1]] == 0) or (mapa[lista[i][0]+1][lista[i][1]] == 4) or (mapa[lista[i][0]+1][lista[i][1]] == 6)):
+                    if not (self.posicionOcupada(lista, listaFinal, [lista[i][0]+1, lista[i][1]])):
+                        listaFinal.append([lista[i][0]+1, lista[i][1], "Abajo"])
+                        posicion = True
+                        continue
+                    else:
+                        lista[i][2] = "Derecha"
                 else:
                     lista[i][2] = "Derecha"
         
@@ -448,15 +455,26 @@ class AAsterisco:
         
         return listaFinal
 
+    def posicionOcupada(self, listapos, lista1, lista2):
+        for i in range(len(lista1)):
+            if((lista1[i][0] == lista2[0]) and (lista1[i][1] == lista2[1])):
+                return True
+                
+        for i in range(len(listapos)):
+            if((listapos[i][0] == lista2[0]) and (listapos[i][1] == lista2[1])):
+                return True
+
+        return False
+
     def nuevoMapa(self, mapa):
         mapaFinal = []
         for i in range(len(mapa)):
             mapaFinal.append(mapa[i])
 
-        posAgente = buscarPos(5, mapaFinal)
+        posAgente = Funciones.buscarPos(5, mapaFinal)
         while(posAgente != 0):
             mapaFinal[posAgente[0]][posAgente[1]] = 0
-            posAgente = buscarPos(5, mapaFinal)
+            posAgente = Funciones.buscarPos(5, mapaFinal)
         
         return mapaFinal
 
@@ -469,13 +487,8 @@ class AAsterisco:
                 a = self.abierta[i]
                 n = i
         self.cerrada.append(self.abierta[n])
-        del self.abierta[n]
-        #while(len(self.abierta) > 0):
-         #   self.abierta.pop()
+        del self.abierta[n]   
         
-        
-   
- 
     # Comprueba si un nodo está en una lista.
     def en_lista(self, nodo, lista):
         for i in range(len(lista)):
@@ -486,11 +499,8 @@ class AAsterisco:
     # Gestiona los vecinos del nodo seleccionado.
     def ruta(self):
         for i in range(len(self.nodos)):
-            #if self.en_lista(self.nodos[i], self.cerrada):
-             #   continue
             if not self.en_lista(self.nodos[i], self.abierta):
                 self.abierta.append(self.nodos[i])
-                #print(self.abierta[-1].pos)
             else:
                 if self.select.f < self.nodos[i].f:
                     for j in range(len(self.abierta)):
@@ -527,8 +537,8 @@ class AAsterisco:
         for i in range(len(ladrillos)):
             if(ladrillos[i] == pos):
                 return 0
-                    
         return 1     
+
     # Retorna una lista con las posiciones del camino a seguir.
     def camino(self):
         for i in range(len(self.abierta)):
@@ -539,203 +549,34 @@ class AAsterisco:
         camino = []
         while meta.padre != None:
             camino.append(meta)
-            #print(meta.mapa, "\n")
-            #print(meta.tipo, meta.pos, "Puerta ->", meta.puerta, meta.posFinal)
             meta = meta.padre
-            #print("c", len(camino))
         camino.append(meta)
         camino.reverse()
         return camino
 
     
-    
-    
-##//////////////////////////////////////////////
-
-
-
-#Funciones /////////////////////////////////////
-
-def vaciarLista(lista):
-    while(len(lista) > 0):
-        lista.pop()
-        
-    return lista
-
-def llenarLista(lista1, listaVacia):
-    for i in range(len(lista1)):
-        listaVacia.append(lista1[i])
-
-    return listaVacia
-  
-def distancia(a, b):
-   # print(a, "\n", b)
-    dis = abs(a[0] - b[0]) + abs(a[1] - b[1]) #Valor absoluto.      
-    return dis
-
-def buscarPos(x, mapa):
-    for f in range(len(mapa)):
-        for c in range(len(mapa[0])):
-            if mapa[f][c] == x:
-                return [f, c]
-    return 0
-    
-    
-# Quita el ultimo caracter de una lista.
-def quitarUltimo(lista):
-    for i in range(len(lista)):
-        lista[i] = lista[i][:-1]
-    return lista
- 
-# Covierte una cadena en una lista.
-def listarCadena(cadena, i):
-    lista = []
-    for j in range(len(cadena)):
-        if cadena[j] == "0":
-            lista.append(0)
-        if cadena[j] == "1":
-            lista.append(1)
-        if cadena[j] == "2":
-            lista.append(2)
-        if cadena[j] == "3":
-            lista.append(3)
-        if cadena[j] == "4":
-            lista.append(4)
-        if cadena[j] == "5":
-            lista.append(5)
-        if cadena[j] == "6":
-            lista.append(6)
-        if cadena[j] == "7":
-            lista.append(7)
-        if cadena[j] == "8":
-            lista.append(8)
-            
-    return lista
-
-def enlistarLadrillos(mapa, num):
-    lista = []
-    for i in range(len(mapa)):
-        for j in range(len(mapa[i])):
-            if mapa[i][j] == num:
-                lista.append([i,j])
-    #print(listaLadrillos)
-    return lista
-
-def posEncontrada(mapa):
-    posFinal = buscarPos(4, mapa)
-    if(posFinal == 0) and (len(globals()["listaLadrillos"]) != 0):
-        posFinal = globals()["listaLadrillos"][0]
-        del globals()["listaLadrillos"][0]
-        #print(globals()["listaLadrillos"])
-    return posFinal
- 
-# Lee un archivo de texto y lo convierte en una lista.
-def leerMapa(archivo):
-    mapa1 = open(archivo, "r")
-    mapa1 = mapa1.readlines()
-    mapa1 = quitarUltimo(mapa1)
-    for i in range(len(mapa1)):
-        mapa1[i] = listarCadena(mapa1[i], i)
-    return mapa1
-
-def generarMeta(lista):
-    pos = random.randint(0 , len(lista))
-    return lista[pos-1]
-
-##////////////////////////////////////////////////////
-    
    
-def main():
+def listaFinal():
     opcion = int(input("Ingrese"))
     if opcion == 1:
+        archivo = "aleatoria.txt"
         tablerito = Tablero.Tablero()
         tablerito.GenLadrillos()
         globals()["metaOculta"] = tablerito.GenMeta()
-        print(globals()["metaOculta"])
-        mapaEnd = Mapa("aleatoria.txt")
-        globals()["listaLadrillos"] = enlistarLadrillos(mapaEnd.mapa, 2)
-        dibujarMapa = Mapa("aleatoria.txt")
-        print("a")
     else:
-        mapaEnd = Mapa()
-        globals()["listaLadrillos"] = enlistarLadrillos(mapaEnd.mapa,2)
-        globals()["metaOculta"] = generarMeta(globals()["listaLadrillos"])
-        dibujarMapa = Mapa()
-        print("a")
+        archivo = "mapa3.txt"
 
-    """for i in range(len(mapaEnd.mapa)):
-        for j in range(len(mapaEnd.mapa[0])):
-            if(mapaEnd.mapa[i][j] == 2):
-                globals()["metaOculta"] = [9,14]
-    print(globals()["metaOculta"])"""
-    ##print(mapaEnd)     
+    mapaEnd = Mapa(archivo)
+    globals()["listaLadrillos"] = Funciones.enlistarLadrillos(mapaEnd.mapa,2)
+    globals()["metaOculta"] = Funciones.generarMeta(globals()["listaLadrillos"])
+  
     A = AAsterisco(mapaEnd.mapa)
     print(mapaEnd.mapa)
 
     for i in range(len(A.caminata)):
-        print(A.caminata[i].tipo, A.caminata[i].pos, "Puerta ->", A.caminata[i].puerta, A.caminata[i].posFinal, " , ", A.caminata[i].f, " , ",A.caminata[i].posEnemigos )
-        #print(mapaEnd.camino(A.caminata[i]))
+        print(A.caminata[i].tipo, A.caminata[i].pos, A.caminata[i].muerte,  "Puerta ->", A.caminata[i].puerta, A.caminata[i].posFinal, " , ", A.caminata[i].f, " , ",A.caminata[i].posEnemigos )
 
     """for i in range(len(A.caminata)):
         print(dibujarMapa.camino(A.caminata[i]), "\n", i)"""
     
-    #matrices = Busqueda1.principal()#[matrizeje1, matrizeje2, matrizeje3, matrizeje4, matrizeje5]
-
-    # variable para controlar el iterador de matrices:
-    aux = 0
-
-    # Objeto Tablero para generar el tablero de juego
-    #tablero = Tablero()
-    #matriz_juego = matrices[0]#tablero.GenLadrillos()
-
-    # Objeto Graficar() para poder graficar el tablero de juego
-    grafica = Graficar()
-
-    # A partir de aquí se genera la ventana de Pygame hasta el final del ciclo while:
-
-    pygame.init()  # Surge error, es normal
-
-    # Se le da una dimensión a la ventana acorde al las dimensiones de la matriz_juego:
-    ventana = pygame.display.set_mode(
-        [len(mapaEnd.mapa[0])*40, len(mapaEnd.mapa)*28])
-    pygame.display.set_caption("Bomberman game")
-
-    # Variable auxiliar para controlar el tiempo de graficado del tablero:
-    aux_tiempo = 3000
-    c = True
-
-    while c:
-
-
-        Tiempo = pygame.time.get_ticks()
-        # print(Tiempo)
-
-        if aux_tiempo == Tiempo:
-            ventana.fill(pygame.Color("#4ca404"))
-            grafica.GraficarTablero(ventana, dibujarMapa.camino(A.caminata[aux]))
-            #dibujarMapa.camino(A.caminata[aux])
-            aux_tiempo += 1000
-            aux += 1
-            print(len(A.caminata), aux)
-            if aux == len(A.caminata)+1:
-                break
-
-        #if Tiempo == 20000:
-        #   c = False
-
-        for evento in pygame.event.get():
-            if evento.type == QUIT:  # Surge error, es normal
-                pygame.quit()  # Surge error, es normal
-                sys.exit()
-
-        pygame.display.update()
-
-            
-            #print(i)  
-            #listaDeMatrices.append(mapaEnd.camino(A.caminata[i]))
-            #print(A.caminata[i].tipo, A.caminata[i].pos, "Puerta ->", A.caminata[i].puerta, A.caminata[i].posFinal)
-            #print(A.camino[i])
-
-
-
-main()
+    return [A.caminata, archivo]

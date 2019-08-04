@@ -1,3 +1,4 @@
+import Busqueda1
 import pygame
 import sys
 from pygame.locals import *  # Surge error, es normal
@@ -7,39 +8,17 @@ from Graficar import Graficar
 
 # Función sólamente de prueba, permite graficar 5 matrices y generar el vídeo envíado al grupo:
 
-matrizeje1 = [[1, 1, 1, 1, 1, 1, 1], [1, 6, 0, 0, 0, 0, 1], [1, 0, 1, 2, 1, 0, 1], [
-    1, 0, 2, 2, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1], [1, 2, 0, 0, 2, 2, 1], [1, 1, 1, 1, 1, 1, 1]]
-matrizeje2 = [[1, 1, 1, 1, 1, 1, 1], [1, 0, 6, 0, 0, 0, 1], [1, 0, 1, 2, 1, 0, 1], [
-    1, 0, 2, 2, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1], [1, 2, 0, 0, 2, 2, 1], [1, 1, 1, 1, 1, 1, 1]]
-matrizeje3 = [[1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 6, 0, 0, 1], [1, 0, 1, 2, 1, 0, 1], [
-    1, 0, 2, 2, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1], [1, 2, 0, 0, 2, 2, 1], [1, 1, 1, 1, 1, 1, 1]]
-matrizeje4 = [[1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 6, 0, 1], [1, 0, 1, 2, 1, 0, 1], [
-    1, 0, 2, 2, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1], [1, 2, 0, 0, 2, 2, 1], [1, 1, 1, 1, 1, 1, 1]]
-matrizeje5 = [[1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 6, 1], [1, 0, 1, 2, 1, 0, 1], [
-    1, 0, 2, 2, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1], [1, 2, 0, 0, 2, 2, 1], [1, 1, 1, 1, 1, 1, 1]]
-matrizeje6 = [[1, 1, 1, 1, 1, 1, 1], [1, 6, 0, 0, 0, 0, 1], [1, 0, 1, 2, 1, 0, 1], [
-    1, 0, 2, 2, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1], [1, 2, 0, 0, 2, 2, 1], [1, 1, 1, 1, 1, 1, 1]]
-matrizeje7 = [[1, 1, 1, 1, 1, 1, 1], [1, 0, 6, 0, 0, 0, 1], [1, 0, 1, 2, 1, 0, 1], [
-    1, 0, 2, 2, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1], [1, 2, 0, 0, 2, 2, 1], [1, 1, 1, 1, 1, 1, 1]]
-matrizeje8 = [[1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 6, 0, 0, 1], [1, 0, 1, 2, 1, 0, 1], [
-    1, 0, 2, 2, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1], [1, 2, 0, 0, 2, 2, 1], [1, 1, 1, 1, 1, 1, 1]]
-matrizeje9 = [[1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 6, 0, 1], [1, 0, 1, 2, 1, 0, 1], [
-    1, 0, 2, 2, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1], [1, 2, 0, 0, 2, 2, 1], [1, 1, 1, 1, 1, 1, 1]]
-matrizeje10 = [[1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 6, 1], [1, 0, 1, 2, 1, 0, 1], [
-    1, 0, 2, 2, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1], [1, 2, 0, 0, 2, 2, 1], [1, 1, 1, 1, 1, 1, 1]]
+mapeo = Busqueda1.listaFinal()
+dibujarTablero = Busqueda1.Mapa(mapeo[1])
+matrices = dibujarTablero.mapa
 
-
-matrices = [matrizeje1, matrizeje2, matrizeje3, matrizeje4, matrizeje5,
-            matrizeje6, matrizeje7, matrizeje8, matrizeje9, matrizeje10,
-            matrizeje1, matrizeje2, matrizeje3, matrizeje4, matrizeje5,
-            matrizeje6, matrizeje7, matrizeje8, matrizeje9, matrizeje10]
 
 # variable para controlar el iterador de matrices:
 aux = 0
 
 # Objeto Tablero para generar el tablero de juego
 #tablero = Tablero()
-matriz_juego = matrices[0]#tablero.GenLadrillos()
+#matriz_juego = matrices[0]#tablero.GenLadrillos()
 
 # Objeto Graficar() para poder graficar el tablero de juego
 grafica = Graficar()
@@ -50,11 +29,11 @@ pygame.init()  # Surge error, es normal
 
 # Se le da una dimensión a la ventana acorde al las dimensiones de la matriz_juego:
 ventana = pygame.display.set_mode(
-    [len(matriz_juego[0])*40, len(matriz_juego)*28])
+    [len(matrices[0])*40, len(matrices)*28])
 pygame.display.set_caption("Bomberman game")
 
 # Variable auxiliar para controlar el tiempo de graficado del tablero:
-aux_tiempo = 5000
+aux_tiempo = 500
 c = True
 
 while c:
@@ -64,10 +43,10 @@ while c:
 
     if aux_tiempo == Tiempo:
         ventana.fill(pygame.Color("#4ca404"))
-        grafica.GraficarTablero(ventana, matrices[aux])
-        aux_tiempo += 1000
+        grafica.GraficarTablero(ventana, dibujarTablero.camino(mapeo[0][aux]))
+        aux_tiempo += 500
         aux += 1
-        if aux == len(matrices)+1:
+        if aux == len(mapeo[0])+1:
             break
 
     #if Tiempo == 20000:
