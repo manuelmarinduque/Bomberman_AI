@@ -15,7 +15,7 @@ def llenarLista(lista1, listaVacia):
     return listaVacia
   
 def distancia(a, b):
-   # print(a, "\n", b)
+    #print(a, "\n", b)
     dis = abs(a[0] - b[0]) + abs(a[1] - b[1]) #Valor absoluto.      
     return dis
 
