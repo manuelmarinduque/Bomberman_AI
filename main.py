@@ -4,7 +4,7 @@ import sys
 from pygame.locals import *  # Surge error, es normal
 from Tablero import Tablero
 from Graficar import Graficar
-#import Busqueda1
+#import Busqueda13
 
 # Función sólamente de prueba, permite graficar 5 matrices y generar el vídeo envíado al grupo:
 
@@ -44,7 +44,8 @@ while c:
     if aux_tiempo < Tiempo:
         ventana.fill(pygame.Color("#4ca404"))
         grafica.GraficarTablero(ventana, dibujarTablero.camino(mapeo[0][aux]))
-        aux_tiempo += 500
+        aux_tiempo += 600
+        print(aux)
         aux += 1
         if aux == len(mapeo[0])+1:
             break
